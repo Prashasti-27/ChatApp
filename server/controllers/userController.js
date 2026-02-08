@@ -10,28 +10,36 @@ export const signup = async(req,res)=> {
 
     try{
         if(!fullName|| !email || !password || !bio){
-            return resizeBy.json({success:false, message: "Missing details"})
+           
+            return res.json({success:false, message: "Missing details"})
         }
         const user =await User.findOne({email});
+     
         if(user){
-              return resizeBy.json({success:false, message: "Account already exists"})
+
+              return res.json({success:false, message: "Account already exists"})
         }
 
-        const salt= await bcrypt.genSalt(10);
-        const hashedPassword= await bcrypt.hash(password,hash);
 
+        const salt= await bcrypt.genSalt(10);
+        const hashedPassword= await bcrypt.hash(password,salt);
+
+      
         const newUser= await User.create({
             fullName,email, password: hashedPassword ,bio
         });
-
-        const token = generateToken(newUser._id)
+     
+       
+        const token = generateToken(newUser._id) 
+        
 
         res.json({success:true, userData: newUser , token , message: "Account created Successfully"})
 
         }catch(error){
+           
 
             console.log(error.message);
-                 res.json({success:false,message: error.message})
+            res.json({success:false,message: error.message})
         }
     }
 

@@ -26,7 +26,7 @@ io.on("connection" , (socket)=> {
     const userId = socket.handshake.query.userId;
     console.log("User Connected", userId);
 
-    if(userId) userSocketMap[userId]= socket.userId;
+    if(userId) userSocketMap[userId]= socket.id;
 
     //emit online user to all connected client\\\
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
@@ -44,12 +44,14 @@ app.use(cors());
 
 
 // Routes setup
-app.use("/api/status", (req,res)=> {res.send("Server is live!!");
+app.use("/api/status", (req,res)=> {
+    res.send("Server is live!!");
+    });
     app.use("/api/auth",userRouter)
 app.use("/api/messages", messageRouter)
 
 
-});
+
 
 
 //Connect to mongoose
