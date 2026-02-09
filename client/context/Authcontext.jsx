@@ -1,4 +1,4 @@
-import { Children, createContext, useEffect, useState } from "react";
+import { children, createContext, useEffect, useState } from "react";
 import axios from 'axios';
 import toast from "react-hot-toast";
 import { io } from 'socket.io-client'
@@ -68,13 +68,18 @@ export const AuthProvider = ({ children }) => {
         socket.disconnect();
     }
 
-    //Update profile function'
+    //Update profile function to handle user profile update
     const updateProfile = async (body) => {
         try {
             const { data } = await axios.put("/api/auth/update-profile", body)
             if (data.success) {
                 setAuthUser(data.user);
+                 const fresh = await axios.get("/api/auth/check");
+                  if (fresh.data.success) {
+        setAuthUser(fresh.data.user);
+      }
                 toast.success("Profile updated successfully")
+                return data;
             }
         } catch (error) {
             toast.error(error.message)
