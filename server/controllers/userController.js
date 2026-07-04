@@ -26,7 +26,8 @@ export const signup = async (req, res) => {
 
 
         const newUser = await User.create({
-            fullName, email, password: hashedPassword, bio
+            fullName, email, password: hashedPassword, 
+            bio
         });
 
 
@@ -52,6 +53,11 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const userData = await User.findOne({ email })
+
+if (!userData) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
         const isPasswordCorrect = await bcrypt.compare(password, userData.password);
 
         if (!isPasswordCorrect) {
@@ -68,7 +74,7 @@ export const login = async (req, res) => {
         console.log(error.message);
         res.json({ success: false, message: error.message })
     }
-}
+};
 
 
 //controller to cheak whether user is authenticated

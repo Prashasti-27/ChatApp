@@ -8,12 +8,12 @@ import { ChatContext } from '../../context/chatContext'
 const Sidebar = () => {
 
     const { getUsers, users, selectedUser, setSelectedUser, unseenMessages, setUnseenMessages } = useContext(ChatContext)
-    console.log("hello")
+  
     const { logout, onlineUsers } = useContext(Authcontext);
-    console.log("world")
+
     const [input, setInput] = useState("")
 
- console.log("namaste")
+
     const navigate = useNavigate();
 
 const filteredUsers = input
@@ -24,13 +24,16 @@ const filteredUsers = input
     )
   : users;
 
-console.log("or kya haal h ")
+
     useEffect(()=> {
     getUsers();
-    } , [onlineUsers])
+    } , [])  //here it has to be [onlineusers]
 
 
-    console.log("useeffect ki gdbd ")
+        useEffect(() => {
+   getUsers();
+}, [onlineUsers]);
+ 
     return (
        
         <div className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-auto text-white ${selectedUser? "max-md:hidden" : ""}`}>
@@ -54,8 +57,8 @@ console.log("or kya haal h ")
             </div>
             <div className='flex flex-col'>
                 {(filteredUsers || []).map((user, index) => (
-                    <div onClick={() => { setSelectedUser(user) }}
-                        key={index} className={`relative flex items-center gap-2 p-2 pl-4 rounded- cursor-pointer max-sm:text-sm ${selectedUser?._id === user._id && 'bg-[#282142]/50'}`}>
+                    <div onClick={() => { setSelectedUser(user), setUnseenMessages(prev => ({...prev, [user._id] : 0})) }}
+                        key={user._id} className={`relative flex items-center gap-2 p-2 pl-4 rounded- cursor-pointer max-sm:text-sm ${selectedUser?._id === user._id && 'bg-[#282142]/50'}`}>
                         <img src={user?.profilePic || assets.avatar_icon} alt="" className='rounded-full aspect-[1/1] w-[35px]' />
                         <div className='felx flex-col leading-5'>
                             <p>{user.fullName}</p>

@@ -16,44 +16,59 @@ export const Authcontext = createContext();
 
 export const AuthProvider = ({ children }) => {
 
+    const [loading, setLoading] = useState(true);
+
     const [token, setToken] = useState(localStorage.getItem("token"));
     const [authUser, setAuthUser] = useState(null);
-    const [onlineUser, setOnlineUser] = useState([]);
+    const [onlineUsers, setOnlineUsers] = useState([]);
     const [socket, setSocket] = useState(null);
 
     // Check if user is authenticated and if so, set the user data and connect the socket;
-    const checkAuth = async () => {
-        try {
-             if (!token) return;  
-            const { data } = await axios.get("/api/auth/check");
-            if (data.success) {
-                setAuthUser(data.user)
-                connectSocket(data.user)
-            }
-        } catch (error) {
-            toast.error(error.message)
-
+const checkAuth = async () => {
+    try {
+        if (!token) {
+            setLoading(false);
+            return;
         }
+
+        const { data } = await axios.get("/api/auth/check");
+        console.log("checkAuth:", data);
+
+        if (data.success) {
+            setAuthUser(data.user);
+            connectSocket(data.user);
+        }
+    } catch (error) {
+        console.log(error);
+        // DON'T clear authUser here
+    } finally {
+        setLoading(false);
     }
+};
 
 
     //Login fun to handle user authentication
     const login = async (state, credentials) => {
         try {
             const { data } = await axios.post(`/api/auth/${state}`, credentials);
-          
+          console.log("Login API Response:", data);
             if (data.success) {
+
+                  console.log("Setting authUser:", data.userData);
                 setAuthUser(data.userData);
                 connectSocket(data.userData);
                 axios.defaults.headers.common["token"] = data.token;
                 setToken(data.token);
                 localStorage.setItem("token", data.token)
+                 window.dispatchEvent(new Event("refreshUsers"));
                 toast.success(data.message)
             } else {
-                toast.error(error.message)
+                toast.error(data.message)
             }
         } catch (error) {
-            toast.error(error.message)
+           toast.error(
+        error.response?.data?.message || error.message
+    );
         }
     }
 
@@ -62,7 +77,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("token");
         setToken(null);
         setAuthUser(null);
-        setOnlineUser([])
+        setOnlineUsers([])
         axios.defaults.headers.common["token"] = null;
         toast.success("Logout Successfully")
         socket.disconnect();
@@ -100,26 +115,27 @@ export const AuthProvider = ({ children }) => {
          setSocket(newSocket);
 
         newSocket.on('getOnlineUsers', (userIds) => {
-            setOnlineUser(userIds);
+            setOnlineUsers(userIds);
         })
     }
+useEffect(() => {
+  if (token) {
+    axios.defaults.headers.common["token"] = token;
+  }
+  checkAuth();
+}, [token]); 
 
-    useEffect(() => {
-        if (token) {
-            axios.defaults.headers.common["token"] = token;
-        }
-        checkAuth();
-    }, [])
 
 
     const value = {
         axios,
         authUser,
-        onlineUser,
+        onlineUsers,
         socket,
         login,
         logout,
-        updateProfile
+        updateProfile,
+        loading
 
     }
     return (
